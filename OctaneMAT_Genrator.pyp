@@ -1,7 +1,14 @@
 # Simple script for doing a Find/Replace over all selected object names.
  
-import c4d, os
-from c4d import gui
+import c4d
+from c4d import bitmaps, gui, plugins, utils
+import collections, os
+
+### Dialoog test ###
+# Add / remove GUI fields.
+# Enable / disable GUI fields
+#
+PLUGIN_ID = 1041301 #TestID only!!!!!!!!!!!!
  
 # Unique id numbers for each of the GUI elements
 LBL_INFO1 = 1000
