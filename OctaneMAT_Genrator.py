@@ -12,22 +12,24 @@ LBL_INFO5 = 1004
 LBL_INFO6 = 1005
 LBL_INFO7 = 1006
 LBL_INFO8 = 1007
+
 FOLDER_ADRESS = 10001
 TXT_REPLACE = 10002
 GROUP_OPTIONS = 20000
+GROUP_TEST = 20001
+
 BTN_OK = 20001
 BTN_CANCEL = 20002
 BTN_COMA = 20003
-DDM_MATTYPE = 20005
-POPO = 20004
+
+DDM_MATTYPE = 30040
+
 
 
 ID_OCTANE_DIFFUSE_MATERIAL = 1029501
 ID_CREATE_GLOSSYMAT_PLUGIN = 1033893
 ID_OCTANE_IMAGE_TEXTURE = 1029508
 ID_OCTANE_DISPLACEMENT = 1031901
-ID_OCTANE_TRANSFORM = 1030961
-ID_OCTANE_PROJECTION = 1031460
 
 def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement):
     doc = c4d.documents.GetActiveDocument()
@@ -35,14 +37,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
 
 #DEFINE MATERIAL TYPE
     mat()[c4d.OCT_MATERIAL_TYPE]=2511
-    
-# TRANSFORM NODE
-    TransN = c4d.BaseShader(ID_OCTANE_TRANSFORM)
-    mat.InsertShader(TransN)
-    
-# PROJECTION NODE
-    ProjN = c4d.BaseShader(ID_OCTANE_PROJECTION)
-    mat.InsertShader(ProjN)
     
 # DIFFUSE SETUP
     if diffuse :
@@ -54,12 +48,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 0
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
 # SPECULAR SETUP
     if specular :
@@ -71,12 +59,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
 # ROUGHNESS SETUP
     if roughness :
@@ -88,12 +70,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
 # NORMAL SETUP
     if normal:
@@ -105,12 +81,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 0
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     else :
         if bump:
             IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
@@ -121,16 +91,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
             IT[c4d.IMAGETEXTURE_MODE] = 1
             IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
             IT[c4d.IMAGETEX_BORDER_MODE] = 0
-            
-            # TRANSFORM
-            IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-            
-            # TRANSFORM
-            IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
-            
-            
-            
-            
     
 # OPACITY SETUP
     if opacity:
@@ -142,12 +102,6 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
 # DISPLACEMENT SETUP
     if displacement:
@@ -167,43 +121,64 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
         
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
-        
-        # TRANSFORM
-        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
-        
         mat[c4d.OCT_MATERIAL_DISPLACEMENT_LINK] = DISP
     
 # INDEX SETUP    
     mat[c4d.OCT_MATERIAL_INDEX] = 1.33    
     doc.InsertMaterial(mat)
     
-    
  
-# Dialog Setup
+# Dialog for renaming objects
 class OptionsDialog(gui.GeDialog):
+    
+  
+  def UpdateLayout (self, id,):
+      if id==0:
+          self.SetString(GROUP_TEST,'Diffuse')
+      if id==1:
+          self.SetString(GROUP_TEST,'Glossy')
+      if id==2:
+          self.SetString(GROUP_TEST,'Specular')
+      
+      self.LayoutChanged(id=GROUP_TEST)            
+      return True
+    
+    
   def CreateLayout(self):
     self.SetTitle('THE OCTANE MAT MAKER')
     
+# MEGA GROUP BEGIN------------------------------------------------------------------------------------------
+    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT, 1, 4,)
+    self.GroupBorderNoTitle(c4d.BORDER_NONE)
+    self.GroupBorderSpace(10, 10, 10, 10)
+    
     # TITLE
     
-    self.AddStaticText(LBL_INFO4, c4d.BFH_CENTER, name='')
-
     self.AddSeparatorH(130 ,c4d.BFH_CENTER)
     self.AddStaticText(LBL_INFO3, c4d.BFH_CENTER, name='Material Type', borderstyle = c4d.BORDER_WITH_TITLE_BOLD)
     self.AddSeparatorH(130 ,c4d.BFH_CENTER,)
     self.AddStaticText(LBL_INFO4, c4d.BFH_CENTER, name='')
     
     # DROP DOWN MATERIAL TYPE
+        #STYLE    
+    self.GroupBegin(GROUP_OPTIONS, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 2,title="Material Setup" ,)
+    self.GroupBorder(c4d.BORDER_GROUP_IN)
+    self.GroupBorderSpace(10, 10, 10, 10)
     
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_CENTER, 2, 1)
+        #CONTENT
     self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT, name='Material Type')
-    self.AddComboBox(DDM_MATTYPE, c4d.BFH_RIGHT, initw = 30)
+    self.AddComboBox(DDM_MATTYPE, c4d.BFH_RIGHT, initw = 80)
+            #ComboBox CONTENT
+    self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
+    self.AddChild(DDM_MATTYPE, 1, 'Glossy')
+    self.AddChild(DDM_MATTYPE, 2, 'Specular')
+    
+    self.AddStaticText(GROUP_TEST,c4d.BFH_LEFT, name='coucou')
+    
     self.GroupEnd()
     
     # FOLDER SELECTION
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT, 3, 1)
+    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT|c4d.BFV_BOTTOM , 3, 1)
     self.AddStaticText(LBL_INFO1, c4d.BFH_LEFT, name='Folder') 
     self.editText = self.AddEditText(FOLDER_ADRESS, c4d.BFH_SCALEFIT)
     self.AddButton(BTN_COMA, c4d.BFH_RIGHT, name='...')
@@ -215,6 +190,9 @@ class OptionsDialog(gui.GeDialog):
     self.AddButton(BTN_OK, c4d.BFH_LEFT, name='OK')
     self.AddButton(BTN_CANCEL, c4d.BFH_CENTER, name='Cancel')
     self.GroupEnd()
+    
+#MEGA GROUP END$------------------------------------------------------------------------------
+    self.GroupEnd()
 
     self.images = None
     self.file_path = None
@@ -224,6 +202,23 @@ class OptionsDialog(gui.GeDialog):
  
   # React to user's input:
   def Command(self, id, msg):
+    #print id 
+    #print msg
+    
+    if id == DDM_MATTYPE:
+        self.UpdateLayout(self.GetLong(DDM_MATTYPE))
+        #print dir(msg)
+        #print msg.GetData()
+        self.GetLong(DDM_MATTYPE)
+        if self.GetLong(30040) == 0:
+            print 'Diffuse'
+        if self.GetLong(30040) == 1:
+            print 'Glossy'
+        if self.GetLong(30040) == 2:
+            print 'Specular'
+        
+            
+    
     if id==BTN_CANCEL:
       self.Close()
     elif id ==BTN_OK:
@@ -273,12 +268,22 @@ class OptionsDialog(gui.GeDialog):
      
     return True
  
-#This is where the magic happens
+#This is where the action happens
 def main():
 
-  # Open the options dialogue to let users choose their options.
   dlg = OptionsDialog()
-  dlg.Open(c4d.DLG_TYPE_ASYNC, defaultw=400, defaulth=100)
+  
+  # Reads DropDownMenu    
+  dlg.GetLong(DDM_MATTYPE)
+  if dlg.GetLong(30040) == 0:
+    print 'Diffuse'
+  if dlg.GetLong(30040) == 1:
+    print 'Glossy'
+  if dlg.GetLong(30040) == 2:
+    print 'Specular'
+    
+  # Open the options dialogue to let users choose their options.  
+  dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=300)
   if not dlg.ok:
     return
  
