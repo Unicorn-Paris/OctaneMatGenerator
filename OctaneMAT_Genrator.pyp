@@ -279,17 +279,38 @@ class OptionsDialog(gui.GeDialog):
 
      
     return True
- 
+
+class CommandDataDialog(plugins.CommandData):
+
+    dialog = None
+
+    def Execute(self, doc):
+        if self.dialog is None: self.dialog = OptionsDialog()
+        return self.dialog.Open(dlgtype=c4d.DLG_TYPE_ASYNC, pluginid=PLUGIN_ID, defaultw=400, defaulth=100)
+    def RestoreLayout(self, sec_ref):
+        if self.dialog is None: self.dialog = OptionsDialog()
+        return self.dialog.Restore(pluginid=PLUGIN_ID, secret=sec_ref)
+
 #This is where the magic happens
 def main():
 
   # Open the options dialogue to let users choose their options.
-  dlg = OptionsDialog()
-  dlg.Open(c4d.DLG_TYPE_ASYNC, defaultw=400, defaulth=100)
-  if not dlg.ok:
-    return
+  # dlg = OptionsDialog()
+  # dlg.Open(c4d.DLG_TYPE_ASYNC, defaultw=400, defaulth=100)
+  # if not dlg.ok:
+  #   return
  
-  c4d.EventAdd()  # Update C4D to see changes.
+  # c4d.EventAdd()  # Update C4D to see changes.
+    bmp = bitmaps.BaseBitmap()
+    dir, f = os.path.split(__file__)
+    fn = os.path.join(dir, "OctaneMAT_Genrator.tif")
+    bmp.InitWith(fn)
+    plugins.RegisterCommandPlugin(id=PLUGIN_ID, 
+                                  str="OMG",
+                                  info=0,
+                                  help="Octane mat Generator", 
+                                  dat=CommandDataDialog(),
+                                  icon=bmp)
  
 if __name__=='__main__':
   main()
