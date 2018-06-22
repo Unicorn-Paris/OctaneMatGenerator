@@ -15,6 +15,7 @@ LBL_INFO8 = 1007
 
 FOLDER_ADRESS = 10001
 TXT_REPLACE = 10002
+INDEX = 10003
 GROUP_OPTIONS = 20000
 GROUP_TEST = 20001
 
@@ -134,21 +135,27 @@ class OptionsDialog(gui.GeDialog):
   
   def UpdateLayout (self, id,):
       if id==0:
-          self.SetString(GROUP_TEST,'Diffuse')
+          self.LayoutFlushGroup(id=20001)
+          self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
       if id==1:
-          self.SetString(GROUP_TEST,'Glossy')
+          self.LayoutFlushGroup(id=20001)
+          self.AddStaticText(1006,c4d.BFH_LEFT, name='Index')
+          self.AddEditSlider(INDEX,c4d.BFH_SCALEFIT,80,0)
+          self.SetFloat(INDEX, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
       if id==2:
-          self.SetString(GROUP_TEST,'Specular')
-      
+          self.LayoutFlushGroup(id=20001)
+          self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
+      #
       self.LayoutChanged(id=GROUP_TEST)            
       return True
     
     
   def CreateLayout(self):
+    id == 0
     self.SetTitle('THE OCTANE MAT MAKER')
     
 # MEGA GROUP BEGIN------------------------------------------------------------------------------------------
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT, 1, 4,)
+    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT, 1,2)
     self.GroupBorderNoTitle(c4d.BORDER_NONE)
     self.GroupBorderSpace(10, 10, 10, 10)
     
@@ -166,16 +173,23 @@ class OptionsDialog(gui.GeDialog):
     self.GroupBorderSpace(10, 10, 10, 10)
     
         #CONTENT
-    self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT, name='Material Type')
-    self.AddComboBox(DDM_MATTYPE, c4d.BFH_RIGHT, initw = 80)
+    self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
+    self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT|c4d.BFV_TOP|c4d.BFH_SCALEFIT, initw = 80)
             #ComboBox CONTENT
     self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
     self.AddChild(DDM_MATTYPE, 1, 'Glossy')
     self.AddChild(DDM_MATTYPE, 2, 'Specular')
     
-    self.AddStaticText(GROUP_TEST,c4d.BFH_LEFT, name='coucou')
+    self.GroupBegin(GROUP_TEST,c4d.BFH_LEFT,2)
+    self.GroupBorder(c4d.BORDER_NONE)
+    self.GroupBorderSpace(10, 0, 10, 0)
+    #GroupVide
+    self.GroupEnd()
+    
     
     self.GroupEnd()
+    
+    
     
     # FOLDER SELECTION
     self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT|c4d.BFV_BOTTOM , 3, 1)
@@ -215,6 +229,9 @@ class OptionsDialog(gui.GeDialog):
         if self.GetLong(30040) == 1:
             print 'Glossy'
         if self.GetLong(30040) == 2:
+            gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
+            self.SetLong(30040, 0)
+            self.UpdateLayout(0)
             print 'Specular'
         
             
@@ -273,15 +290,7 @@ def main():
 
   dlg = OptionsDialog()
   
-  # Reads DropDownMenu    
-  dlg.GetLong(DDM_MATTYPE)
-  if dlg.GetLong(30040) == 0:
-    print 'Diffuse'
-  if dlg.GetLong(30040) == 1:
-    print 'Glossy'
-  if dlg.GetLong(30040) == 2:
-    print 'Specular'
-    
+ 
   # Open the options dialogue to let users choose their options.  
   dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=300)
   if not dlg.ok:
