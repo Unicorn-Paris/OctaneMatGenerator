@@ -103,30 +103,23 @@ class CommandDataDialog(c4d.plugins.CommandData):
 
     def Execute(self, doc):
         if self.dialog is None:
-            self.dialog = MyDialog()
-        return self.dialog.Open(dlgtype=c4d.DLG_TYPE_ASYNC, pluginid=PLUGIN_ID, defaultw=400, defaulth=100)
+            self.dialog = OptionsDialog()
+        return self.dialog.Open(dlgtype=c4d.DLG_TYPE_ASYNC, pluginid=ids.PLUGIN_ID, defaultw=400, defaulth=100)
 
     def RestoreLayout(self, sec_ref):
         if self.dialog is None:
-            self.dialog = MyDialog()
-        return self.dialog.Restore(pluginid=PLUGIN_ID, secret=sec_ref)
+            self.dialog = OptionsDialog()
+        return self.dialog.Restore(pluginid=ids.PLUGIN_ID, secret=sec_ref)
 
 
-def register_plugin():
+if __name__=='__main__':
     icon = c4d.bitmaps.BaseBitmap()
     icon.InitWith(os.path.join(os.path.dirname(__file__), 'res', 'icon.tif'))
     c4d.plugins.RegisterCommandPlugin(
         info=0,
         icon=icon,
         id=ids.PLUGIN_ID,
-        str=c4d.plugins.GeLoadString(ids.PLUGIN_NAME),
-        help=c4d.plugins.GeLoadString(ids.PLUGIN_NAME_STR_LONG),
+        str=ids.PLUGIN_NAME_STR_LONG,
+        help=ids.PLUGIN_NAME_STR_LONG,
         dat=CommandDataDialog()
     )
-
-
-if __name__ == 'main':
-    register_plugin()
-    # octane_mat_maker = OptionsDialog()
-    # octane_mat_maker.Open(c4d.DLG_TYPE_MODAL, defaultw=CNF_WIDTH, defaulth=CNF_HEIGHT)
-    # c4d.EventAdd()
