@@ -31,13 +31,25 @@ ID_OCTANE_DIFFUSE_MATERIAL = 1029501
 ID_CREATE_GLOSSYMAT_PLUGIN = 1033893
 ID_OCTANE_IMAGE_TEXTURE = 1029508
 ID_OCTANE_DISPLACEMENT = 1031901
+ID_OCTANE_TRANSFORM = 1030961
+ID_OCTANE_PROJECTION = 1031460
 
-def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement):
+def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, name):
+    print('shader name: {}'.format(name))
     doc = c4d.documents.GetActiveDocument()
     mat = c4d.BaseMaterial(ID_OCTANE_DIFFUSE_MATERIAL)
 
 #DEFINE MATERIAL TYPE
-    mat()[c4d.OCT_MATERIAL_TYPE]=2511
+    mat[c4d.OCT_MATERIAL_TYPE] = 2511
+    mat[c4d.ID_BASELIST_NAME] = name 
+    
+# TRANSFORM NODE
+    TransN = c4d.BaseShader(ID_OCTANE_TRANSFORM)
+    mat.InsertShader(TransN)
+    
+# PROJECTION NODE
+    ProjN = c4d.BaseShader(ID_OCTANE_PROJECTION)
+    mat.InsertShader(ProjN)
     
 # DIFFUSE SETUP
     if diffuse :
@@ -49,6 +61,12 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 0
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN        
 
 # SPECULAR SETUP
     if specular :
@@ -60,6 +78,12 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
 # ROUGHNESS SETUP
     if roughness :
@@ -71,6 +95,12 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
 # NORMAL SETUP
     if normal:
@@ -82,6 +112,13 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 0
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
+        
     else :
         if bump:
             IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
@@ -92,6 +129,12 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
             IT[c4d.IMAGETEXTURE_MODE] = 1
             IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
             IT[c4d.IMAGETEX_BORDER_MODE] = 0
+            
+            # TRANSFORM
+            IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+            # TRANSFORM
+            IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
 # OPACITY SETUP
     if opacity:
@@ -103,6 +146,12 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_MODE] = 1
         IT[c4d.IMAGETEXTURE_GAMMA] = 2.2
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
 # DISPLACEMENT SETUP
     if displacement:
@@ -123,11 +172,18 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEX_BORDER_MODE] = 0
         
         mat[c4d.OCT_MATERIAL_DISPLACEMENT_LINK] = DISP
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_TRANSFORM_LINK] = TransN
+        
+        # TRANSFORM
+        IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
 # INDEX SETUP    
     mat[c4d.OCT_MATERIAL_INDEX] = 1.33    
     doc.InsertMaterial(mat)
     
+
  
 # Dialog for renaming objects
 class OptionsDialog(gui.GeDialog):
@@ -236,9 +292,10 @@ class OptionsDialog(gui.GeDialog):
         
             
     
-    if id==BTN_CANCEL:
+    if id == BTN_CANCEL:
+      print '{}'.format(self.file_path)
       self.Close()
-    elif id ==BTN_OK:
+    elif id == BTN_OK:
     
       diffuse = None
       specular = None
@@ -253,25 +310,26 @@ class OptionsDialog(gui.GeDialog):
           
       self.images = os.listdir(self.file_path)
       
-      for i in self.images:
-        print i
-        if 'diffuse' in i.lower() or 'color' in i.lower() or 'col' in i.lower() or 'albedo' in i.lower():
-          diffuse = '{}\{}'.format(self.file_path, i)
-        if 'specular' in i.lower() or 'gloss' in i.lower():
-          specular = '{}\{}'.format(self.file_path, i)
-        if 'roughness' in i.lower():
-          roughness = '{}\{}'.format(self.file_path, i)
-        if 'normal' in i.lower() or 'nrm' in i.lower():
-          normal = '{}\{}'.format(self.file_path, i)
-        if 'bump' in i.lower():
-          bump = '{}\{}'.format(self.file_path, i)
-        if 'opacity' in i.lower() or 'alpha' in i.lower():
-          opacity = '{}\{}'.format(self.file_path, i)
-        if 'displacement' in i.lower() or 'disp' in i.lower() or 'depth' in i.lower():
-          displacement = '{}\{}'.format(self.file_path, i)
+      for filename in list(map(lambda j: j.lower(), self.images)):
+        lowered_filename = filename.lower()
+        absolute_filename = os.path.join(self.file_path, filename)
+        if 'diffuse' in lowered_filename or 'color' in lowered_filename or 'col' in lowered_filename or 'albedo' in lowered_filename:
+          diffuse = absolute_filename
+        if 'specular' in lowered_filename or 'gloss' in lowered_filename:
+          specular = absolute_filename
+        if 'roughness' in lowered_filename:
+          roughness = absolute_filename
+        if 'normal' in lowered_filename or 'nrm' in lowered_filename:
+          normal = absolute_filename
+        if 'bump' in lowered_filename:
+          bump = absolute_filename
+        if 'opacity' in lowered_filename or 'alpha' in lowered_filename:
+          opacity = absolute_filename
+        if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
+          displacement = absolute_filename
 
       
-      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement)    
+      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path))    
       c4d.EventAdd()    
       
       self.Close()
