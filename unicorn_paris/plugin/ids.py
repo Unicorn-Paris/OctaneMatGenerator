@@ -5,7 +5,7 @@ IDs
 # Plugin ID from Plugin Cafe.
 PLUGIN_ID = 1041301
 PLUGIN_NAME_STR = 'OMG'
-PLUGIN_NAME_STR_LONG = 'OMG (OCTANE MATERIAL GENERATOR)'
+PLUGIN_NAME_STR_LONG = 'OMG (Octane Material Generator)'
 
 # IDs for GUI elements.
 LBL_FOLDER = 1000
