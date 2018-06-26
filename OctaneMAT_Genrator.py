@@ -1,4 +1,4 @@
-# Simple script for doing a Find/Replace over all selected object names.
+# Creat Octane Material from file folder by texture name
  
 import c4d, os
 from c4d import gui
