@@ -65,7 +65,16 @@ ID_OCTANE_DISPLACEMENT = 1031901
 ID_OCTANE_TRANSFORM = 1030961
 ID_OCTANE_PROJECTION = 1031460
 
-def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, name):
+diffuse = None
+specular = None
+roughness = None
+normal = None
+bump = None
+opacity = None
+displacement = None
+index = None
+
+def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, name,index):
     print('shader name: {}'.format(name))
     doc = c4d.documents.GetActiveDocument()
     mat = c4d.BaseMaterial(ID_OCTANE_DIFFUSE_MATERIAL)
@@ -211,7 +220,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
     # INDEX SETUP    
-    mat[c4d.OCT_MATERIAL_INDEX] = 1.33    
+    mat[c4d.OCT_MATERIAL_INDEX] = index    
     doc.InsertMaterial(mat)
     
 def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement):
@@ -234,8 +243,8 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
       self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
       self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT, initw = 80)
             #ComboBox CONTENT
-      self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
-      self.AddChild(DDM_MATTYPE, 1, 'Glossy')
+      self.AddChild(DDM_MATTYPE, 0, 'Glossy')
+      self.AddChild(DDM_MATTYPE, 1, 'Diffuse')
       self.AddChild(DDM_MATTYPE, 2, 'Specular')
     
       self.GroupEnd()
@@ -377,18 +386,28 @@ class OptionsDialog(gui.GeDialog):
     #print msg
     
     if id == DDM_MATTYPE:
-        self.UpdateLayout(self.GetLong(DDM_MATTYPE))
+
+        #self.UpdateLayout(self.GetLong(DDM_MATTYPE))
         #print dir(msg)
         #print msg.GetData()
         self.GetLong(DDM_MATTYPE)
         if self.GetLong(30040) == 0:
-            print 'Diffuse'
-        if self.GetLong(30040) == 1:
             print 'Glossy'
+            for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+              self.Enable(id, True)
+            for id in [10011,10022]:
+              self.Enable(id, True)
+        if self.GetLong(30040) == 1:
+            print 'Diffuse'
+            for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+              self.Enable(id, True)
+            for id in [10011, 10022]:
+              self.Enable(id, False)
+        
         if self.GetLong(30040) == 2:
             gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
             self.SetLong(30040, 0)
-            self.UpdateLayout(0)
+            #self.UpdateLayout(0)
             print 'Specular'
         
             
@@ -398,13 +417,8 @@ class OptionsDialog(gui.GeDialog):
       self.Close()
     elif id == BTN_OK:
     
-      diffuse = None
-      specular = None
-      roughness = None
-      normal = None
-      bump = None
-      opacity = None
-      displacement = None
+      index = self.GetFloat(INDEX_FIELD)
+      print index
       
       if (self.file_path is None):
         self.file_path = self.GetString(FOLDER_ADRESS)
@@ -434,21 +448,14 @@ class OptionsDialog(gui.GeDialog):
           displacement = absolute_filename
 
       
-      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path))    
+      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index)    
       c4d.EventAdd()    
       
       self.Close()
     
     elif id==BTN_LOAD:
         
-        diffuse = None
-        specular = None
-        roughness = None
-        normal = None
-        bump = None
-        opacity = None
-        displacement = None
-      
+        
         if (self.file_path is None):
           self.file_path = self.GetString(FOLDER_ADRESS)
           
