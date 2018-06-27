@@ -25,6 +25,12 @@ GR_TEXDEF_R = 2005
 
 GR_LOAD_BTN = 2006
 
+GR_DDM = 2007
+
+GR_IN_FLUSH = 2008
+
+GR_TEXDEF = 2009
+
 #Edit fields 3
 FOLDER_ADRESS = 10001
 INDEX = 10003
@@ -209,21 +215,36 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
     doc.InsertMaterial(mat)
     
 def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement):
-      #if id==0:
-          #self.LayoutFlushGroup(id=20001)
-          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
-      #if id==1:
-          #self.LayoutFlushGroup(id=20001)
-          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Index')
-          #self.AddEditSlider(INDEX,c4d.BFH_SCALEFIT,80,0)
-          #self.SetFloat(INDEX, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
-      #if id==2:
-          #self.LayoutFlushGroup(id=20001)
-          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
-          
+      
 
+      #Texture Liste
       self.LayoutFlushGroup(id=GR_FLUSH)
+      self.GroupBorder(c4d.BORDER_GROUP_IN)
+      self.GroupBorderSpace(10, 0, 10, 0)
+
+      self.GroupBegin(GR_IN_FLUSH, c4d.BFH_SCALEFIT,1,2)
+
+      # DROP DOWN MATERIAL TYPE
+        #STYLE    
+      self.GroupBegin(GR_DDM, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 1,)
+      self.GroupBorder(c4d.BORDER_NONE)
+      self.GroupBorderSpace(10, 5, 10, 10)
+    
+        #CONTENT
+      self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
+      self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT, initw = 80)
+            #ComboBox CONTENT
+      self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
+      self.AddChild(DDM_MATTYPE, 1, 'Glossy')
+      self.AddChild(DDM_MATTYPE, 2, 'Specular')
+    
+      self.GroupEnd()
+
+      self.GroupBegin(GR_TEXDEF, c4d.BFH_SCALEFIT)
+
+    #GR_L
       self.GroupBegin(GR_TEXDEF_L, c4d.BFH_LEFT, 2,5)
+      self.GroupBorderSpace(10, 5, 10, 5)
 
       self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse :')
       self.editText = self.AddEditText(DIFFUSE_FIELD, c4d.BFH_SCALEFIT, initw = 300)
@@ -246,7 +267,11 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
       self.SetString(NORMAL_FIELD,normal)
 
       self.GroupEnd()
+
+    #GR_R
       self.GroupBegin(GR_TEXDEF_R, c4d.BFH_RIGHT, 2,5)
+      self.GroupBorderSpace(10, 5, 10, 5)
+
 
       self.AddStaticText(1006,c4d.BFH_LEFT, name='Displacement :')
       self.editText = self.AddEditText(DSPLACEMENT_FIELD, c4d.BFH_SCALEFIT, initw = 300)
@@ -268,6 +293,10 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
       self.AddStaticText(1006,c4d.BFH_LEFT, name='Medium :')
       self.editText = self.AddEditText(MEDIUM_FIELD, c4d.BFH_SCALEFIT, initw = 300)
       # self.SetString(MEDIUM_FIELD,medium)
+
+      self.GroupEnd()
+
+      self.GroupEnd()
 
       self.LayoutChanged(id=GR_FLUSH)            
       return True
@@ -319,9 +348,9 @@ class OptionsDialog(gui.GeDialog):
     self.GroupEnd()
     
     #GroupVide
-    self.GroupBegin(GR_FLUSH,c4d.BFH_SCALEFIT,2,5)
-    self.GroupBorder(c4d.BORDER_NONE)
-    self.GroupBorderSpace(10, 0, 10, 0)
+    self.GroupBegin(GR_FLUSH,c4d.BFH_SCALEFIT,2,1,title='Texture selection')
+    #self.GroupBorder(c4d.BORDER_NONE)
+    #self.GroupBorderSpace(10, 0, 10, 0)
 
     self.GroupEnd()
     #GroupeVide End
