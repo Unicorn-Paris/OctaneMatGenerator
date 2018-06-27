@@ -4,6 +4,8 @@ import c4d, os
 from c4d import gui
  
 # Unique id numbers for each of the GUI elements
+
+# Labels 1
 LBL_INFO1 = 1000
 LBL_INFO2 = 1001
 LBL_INFO3 = 1002
@@ -13,20 +15,43 @@ LBL_INFO6 = 1005
 LBL_INFO7 = 1006
 LBL_INFO8 = 1007
 
-FOLDER_ADRESS = 10001
-TXT_REPLACE = 10002
-INDEX = 10003
-GROUP_OPTIONS = 20000
-GROUP_TEST = 20001
+# Groups 2
+GR_MAIN = 2001
+GR_FOLDER_ADRESS = 2002
 
+GR_FLUSH = 2003
+GR_TEXDEF_L = 2004
+GR_TEXDEF_R = 2005
+
+GR_LOAD_BTN = 2006
+
+#Edit fields 3
+FOLDER_ADRESS = 10001
+INDEX = 10003
+
+DIFFUSE_FIELD = 10010
+SPECULAR_FIELD = 10011
+ROUGHNESS_FIELD = 10012
+BUMP_FIELD = 10013
+NORMAL_FIELD = 10014
+
+DSPLACEMENT_FIELD = 10020
+OPACITY_FIELD = 10021
+INDEX_FIELD = 10022
+EMISSION_FIELD = 10023
+MEDIUM_FIELD = 10024
+
+# Buttons 4
 BTN_OK = 20001
 BTN_CANCEL = 20002
 BTN_COMA = 20003
+BTN_LOAD = 20004
 
+# Drop down menu 5
 DDM_MATTYPE = 30040
 
 
-
+# Octane Plugin ID
 ID_OCTANE_DIFFUSE_MATERIAL = 1029501
 ID_CREATE_GLOSSYMAT_PLUGIN = 1033893
 ID_OCTANE_IMAGE_TEXTURE = 1029508
@@ -39,19 +64,19 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
     doc = c4d.documents.GetActiveDocument()
     mat = c4d.BaseMaterial(ID_OCTANE_DIFFUSE_MATERIAL)
 
-#DEFINE MATERIAL TYPE
+    #DEFINE MATERIAL TYPE
     mat[c4d.OCT_MATERIAL_TYPE] = 2511
     mat[c4d.ID_BASELIST_NAME] = name 
     
-# TRANSFORM NODE
+    # TRANSFORM NODE
     TransN = c4d.BaseShader(ID_OCTANE_TRANSFORM)
     mat.InsertShader(TransN)
     
-# PROJECTION NODE
+    # PROJECTION NODE
     ProjN = c4d.BaseShader(ID_OCTANE_PROJECTION)
     mat.InsertShader(ProjN)
     
-# DIFFUSE SETUP
+    # DIFFUSE SETUP
     if diffuse :
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -68,7 +93,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         # TRANSFORM
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN        
 
-# SPECULAR SETUP
+    # SPECULAR SETUP
     if specular :
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -85,7 +110,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         # TRANSFORM
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
-# ROUGHNESS SETUP
+    # ROUGHNESS SETUP
     if roughness :
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -102,7 +127,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         # TRANSFORM
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
-# NORMAL SETUP
+    # NORMAL SETUP
     if normal:
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -136,7 +161,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
             # TRANSFORM
             IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
-# OPACITY SETUP
+    # OPACITY SETUP
     if opacity:
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -153,7 +178,7 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         # TRANSFORM
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
 
-# DISPLACEMENT SETUP
+    # DISPLACEMENT SETUP
     if displacement:
         IT = c4d.BaseShader(ID_OCTANE_IMAGE_TEXTURE)
         mat.InsertShader(IT)
@@ -179,39 +204,83 @@ def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacemen
         # TRANSFORM
         IT[c4d.IMAGETEXTURE_PROJECTION_LINK] = ProjN
     
-# INDEX SETUP    
+    # INDEX SETUP    
     mat[c4d.OCT_MATERIAL_INDEX] = 1.33    
     doc.InsertMaterial(mat)
     
+def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement):
+      #if id==0:
+          #self.LayoutFlushGroup(id=20001)
+          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
+      #if id==1:
+          #self.LayoutFlushGroup(id=20001)
+          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Index')
+          #self.AddEditSlider(INDEX,c4d.BFH_SCALEFIT,80,0)
+          #self.SetFloat(INDEX, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
+      #if id==2:
+          #self.LayoutFlushGroup(id=20001)
+          #self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
+          
 
+      self.LayoutFlushGroup(id=GR_FLUSH)
+      self.GroupBegin(GR_TEXDEF_L, c4d.BFH_LEFT, 2,5)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse :')
+      self.editText = self.AddEditText(DIFFUSE_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(DIFFUSE_FIELD,diffuse)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Specular :')
+      self.editText = self.AddEditText(SPECULAR_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(SPECULAR_FIELD,specular)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Roughness :')
+      self.editText = self.AddEditText(ROUGHNESS_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(ROUGHNESS_FIELD,roughness)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Bump :')
+      self.editText = self.AddEditText(BUMP_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(BUMP_FIELD,bump)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Normal :')
+      self.editText = self.AddEditText(NORMAL_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(NORMAL_FIELD,normal)
+
+      self.GroupEnd()
+      self.GroupBegin(GR_TEXDEF_R, c4d.BFH_RIGHT, 2,5)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Displacement :')
+      self.editText = self.AddEditText(DSPLACEMENT_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(DSPLACEMENT_FIELD,displacement)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Opacity :')
+      self.editText = self.AddEditText(OPACITY_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      self.SetString(OPACITY_FIELD,opacity)
+
+      ######
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Index :')
+      self.AddEditSlider(INDEX_FIELD,c4d.BFH_SCALEFIT,80,0)
+      self.SetFloat(INDEX_FIELD, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Emission :')
+      self.editText = self.AddEditText(EMISSION_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      # self.SetString(EMISSION_FIELD,emission)
+
+      self.AddStaticText(1006,c4d.BFH_LEFT, name='Medium :')
+      self.editText = self.AddEditText(MEDIUM_FIELD, c4d.BFH_SCALEFIT, initw = 300)
+      # self.SetString(MEDIUM_FIELD,medium)
+
+      self.LayoutChanged(id=GR_FLUSH)            
+      return True
  
 # Dialog for renaming objects
 class OptionsDialog(gui.GeDialog):
-    
-  
-  def UpdateLayout (self, id,):
-      if id==0:
-          self.LayoutFlushGroup(id=20001)
-          self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
-      if id==1:
-          self.LayoutFlushGroup(id=20001)
-          self.AddStaticText(1006,c4d.BFH_LEFT, name='Index')
-          self.AddEditSlider(INDEX,c4d.BFH_SCALEFIT,80,0)
-          self.SetFloat(INDEX, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
-      if id==2:
-          self.LayoutFlushGroup(id=20001)
-          self.AddStaticText(1006,c4d.BFH_LEFT, name='Diffuse')
-      #
-      self.LayoutChanged(id=GROUP_TEST)            
-      return True
-    
-    
+      
   def CreateLayout(self):
     id == 0
     self.SetTitle('THE OCTANE MAT MAKER')
     
-# MEGA GROUP BEGIN------------------------------------------------------------------------------------------
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT, 1,2)
+    # MEGA GROUP BEGIN------------------------------------------------------------------------------------------
+    self.GroupBegin(GR_MAIN, c4d.BFH_SCALEFIT, 1,2)
     self.GroupBorderNoTitle(c4d.BORDER_NONE)
     self.GroupBorderSpace(10, 10, 10, 10)
     
@@ -220,45 +289,48 @@ class OptionsDialog(gui.GeDialog):
     self.AddSeparatorH(130 ,c4d.BFH_CENTER)
     self.AddStaticText(LBL_INFO3, c4d.BFH_CENTER, name='Material Type', borderstyle = c4d.BORDER_WITH_TITLE_BOLD)
     self.AddSeparatorH(130 ,c4d.BFH_CENTER,)
-    self.AddStaticText(LBL_INFO4, c4d.BFH_CENTER, name='')
     
     # DROP DOWN MATERIAL TYPE
         #STYLE    
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 2,title="Material Setup" ,)
-    self.GroupBorder(c4d.BORDER_GROUP_IN)
-    self.GroupBorderSpace(10, 10, 10, 10)
-    
+    #self.GroupBegin(GROUP_OPTIONS, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 2,title="Material Setup" ,)
+    #self.GroupBorder(c4d.BORDER_GROUP_IN)
+    #self.GroupBorderSpace(10, 10, 10, 10)
+    #
         #CONTENT
-    self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
-    self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT|c4d.BFV_TOP|c4d.BFH_SCALEFIT, initw = 80)
+    #self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
+    #self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT|c4d.BFV_TOP|c4d.BFH_SCALEFIT, initw = 80)
             #ComboBox CONTENT
-    self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
-    self.AddChild(DDM_MATTYPE, 1, 'Glossy')
-    self.AddChild(DDM_MATTYPE, 2, 'Specular')
+    #self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
+    #self.AddChild(DDM_MATTYPE, 1, 'Glossy')
+    #self.AddChild(DDM_MATTYPE, 2, 'Specular')
     
-    self.GroupBegin(GROUP_TEST,c4d.BFH_LEFT,2)
-    self.GroupBorder(c4d.BORDER_NONE)
-    self.GroupBorderSpace(10, 0, 10, 0)
-    #GroupVide
-    self.GroupEnd()
-    
-    
-    self.GroupEnd()
-    
+   
+    #
+    #self.GroupEnd()
+    #
     
     
     # FOLDER SELECTION
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_SCALEFIT|c4d.BFV_BOTTOM , 3, 1)
+    self.GroupBegin(GR_FOLDER_ADRESS, c4d.BFH_SCALEFIT|c4d.BFV_BOTTOM , 3, 1)
+    self.GroupBorderSpace(0, 10, 0, 5)
     self.AddStaticText(LBL_INFO1, c4d.BFH_LEFT, name='Folder') 
     self.editText = self.AddEditText(FOLDER_ADRESS, c4d.BFH_SCALEFIT)
     self.AddButton(BTN_COMA, c4d.BFH_RIGHT, name='...')
     self.GroupEnd()
     
+    #GroupVide
+    self.GroupBegin(GR_FLUSH,c4d.BFH_SCALEFIT,2,5)
+    self.GroupBorder(c4d.BORDER_NONE)
+    self.GroupBorderSpace(10, 0, 10, 0)
+
+    self.GroupEnd()
+    #GroupeVide End
     
-    
-    self.GroupBegin(GROUP_OPTIONS, c4d.BFH_CENTER, 3, 1)
-    self.AddButton(BTN_OK, c4d.BFH_LEFT, name='OK')
-    self.AddButton(BTN_CANCEL, c4d.BFH_CENTER, name='Cancel')
+    self.GroupBegin(GR_LOAD_BTN, c4d.BFH_CENTER, 3, 1)
+    self.GroupBorderSpace(0, 5, 0, 5)
+    self.AddButton(BTN_LOAD, c4d.BFH_LEFT, name='Load')
+    self.AddButton(BTN_OK, c4d.BFH_CENTER, name='Load & Creat Mat')
+    self.AddButton(BTN_CANCEL, c4d.BFH_RIGHT, name='Cancel')
     self.GroupEnd()
     
 #MEGA GROUP END$------------------------------------------------------------------------------
@@ -308,6 +380,10 @@ class OptionsDialog(gui.GeDialog):
       if (self.file_path is None):
         self.file_path = self.GetString(FOLDER_ADRESS)
           
+      if not os.path.exists(self.file_path):
+        gui.MessageDialog('The system cannot find the path specified')
+        return
+          
       self.images = os.listdir(self.file_path)
       
       for filename in list(map(lambda j: j.lower(), self.images)):
@@ -333,7 +409,48 @@ class OptionsDialog(gui.GeDialog):
       c4d.EventAdd()    
       
       self.Close()
+    
+    elif id==BTN_LOAD:
+        
+        diffuse = None
+        specular = None
+        roughness = None
+        normal = None
+        bump = None
+        opacity = None
+        displacement = None
       
+        if (self.file_path is None):
+          self.file_path = self.GetString(FOLDER_ADRESS)
+          
+        if not os.path.exists(self.file_path):
+          gui.MessageDialog('The system cannot find the path specified')
+          return
+          
+        self.images = os.listdir(self.file_path)
+        
+        for filename in self.images:
+            lowered_filename = filename.lower()
+            if 'diffuse' in lowered_filename or 'color' in lowered_filename or 'col' in lowered_filename or 'albedo' in lowered_filename:
+              diffuse = filename
+            if 'specular' in lowered_filename or 'gloss' in lowered_filename:
+              specular = filename
+            if 'roughness' in lowered_filename:
+              roughness = filename
+            if 'normal' in lowered_filename or 'nrm' in lowered_filename:
+              normal = filename
+            if 'bump' in lowered_filename:
+              bump = filename
+            if 'opacity' in lowered_filename or 'alpha' in lowered_filename:
+              opacity = filename
+            if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
+              displacement = filename
+      
+      
+        UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement)
+
+        
+    
     elif id==BTN_COMA:
       self.ok = True
       self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
@@ -350,7 +467,7 @@ def main():
   
  
   # Open the options dialogue to let users choose their options.  
-  dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=300)
+  dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=10)
   if not dlg.ok:
     return
  
