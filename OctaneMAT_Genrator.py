@@ -1,4 +1,4 @@
-# Creat Octane Material from file folder by texture name
+# Create Octane Material from file folder by texture name
  
 import c4d, os
 from c4d import gui
@@ -52,6 +52,7 @@ BTN_OK = 20001
 BTN_CANCEL = 20002
 BTN_COMA = 20003
 BTN_LOAD = 20004
+BTN_CREATE_MAT = 20005
 
 # Drop down menu 5
 DDM_MATTYPE = 30040
@@ -307,6 +308,8 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
 
       self.GroupEnd()
 
+      self.AddButton(BTN_CREATE_MAT,c4d.BFH_CENTER, name='Create Material')
+
       self.LayoutChanged(id=GR_FLUSH)            
       return True
  
@@ -382,50 +385,44 @@ class OptionsDialog(gui.GeDialog):
  
   # React to user's input:
   def Command(self, id, msg):
-    #print id 
-    #print msg
-    
     if id == DDM_MATTYPE:
-
-        #self.UpdateLayout(self.GetLong(DDM_MATTYPE))
-        #print dir(msg)
-        #print msg.GetData()
-        self.GetLong(DDM_MATTYPE)
-        if self.GetLong(30040) == 0:
-            print 'Glossy'
-            for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
-              self.Enable(id, True)
-            for id in [10011,10022]:
-              self.Enable(id, True)
-        if self.GetLong(30040) == 1:
-            print 'Diffuse'
-            for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
-              self.Enable(id, True)
-            for id in [10011, 10022]:
-              self.Enable(id, False)
-        
-        if self.GetLong(30040) == 2:
-            gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
-            self.SetLong(30040, 0)
-            #self.UpdateLayout(0)
-            print 'Specular'
-        
+      self.GetLong(DDM_MATTYPE)
+      if self.GetLong(30040) == 0:
+        print 'Glossy'
+        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+          self.Enable(id, True)
+        for id in [10011,10022]:
+          self.Enable(id, True)
+      if self.GetLong(30040) == 1:
+        print 'Diffuse'
+        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+          self.Enable(id, True)
+        for id in [10011, 10022]:
+          self.Enable(id, False)
+      
+      if self.GetLong(30040) == 2:
+        gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
+        self.SetLong(30040, 0)
+        #self.UpdateLayout(0)
+        print 'Specular'
+      return True
             
     
     if id == BTN_CANCEL:
       print '{}'.format(self.file_path)
       self.Close()
+      return True
+
+
     elif id == BTN_OK:
-    
       index = self.GetFloat(INDEX_FIELD)
-      print index
       
       if (self.file_path is None):
         self.file_path = self.GetString(FOLDER_ADRESS)
           
       if not os.path.exists(self.file_path):
         gui.MessageDialog('The system cannot find the path specified')
-        return
+        return True
           
       self.images = os.listdir(self.file_path)
       
@@ -447,55 +444,70 @@ class OptionsDialog(gui.GeDialog):
         if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
           displacement = absolute_filename
 
-      
       make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index)    
       c4d.EventAdd()    
-      
       self.Close()
+      return True
     
-    elif id==BTN_LOAD:
-        
-        
-        if (self.file_path is None):
-          self.file_path = self.GetString(FOLDER_ADRESS)
-          
-        if not os.path.exists(self.file_path):
-          gui.MessageDialog('The system cannot find the path specified')
-          return
-          
-        self.images = os.listdir(self.file_path)
-        
-        for filename in self.images:
-            lowered_filename = filename.lower()
-            if 'diffuse' in lowered_filename or 'color' in lowered_filename or 'col' in lowered_filename or 'albedo' in lowered_filename:
-              diffuse = filename
-            if 'specular' in lowered_filename or 'gloss' in lowered_filename:
-              specular = filename
-            if 'roughness' in lowered_filename:
-              roughness = filename
-            if 'normal' in lowered_filename or 'nrm' in lowered_filename:
-              normal = filename
-            if 'bump' in lowered_filename:
-              bump = filename
-            if 'opacity' in lowered_filename or 'alpha' in lowered_filename:
-              opacity = filename
-            if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
-              displacement = filename
-      
-      
-        UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement)
 
+    elif id == BTN_LOAD:
+      if (self.file_path is None):
+        self.file_path = self.GetString(FOLDER_ADRESS)
         
-    
-    elif id==BTN_COMA:
+      if not os.path.exists(self.file_path):
+        gui.MessageDialog('The system cannot find the path specified')
+        return True
+        
+      self.images = os.listdir(self.file_path)
+      
+      for filename in self.images:
+        lowered_filename = filename.lower()
+        if 'diffuse' in lowered_filename or 'color' in lowered_filename or 'col' in lowered_filename or 'albedo' in lowered_filename:
+          diffuse = filename
+          print os.path.join(self.file_path, diffuse)
+        if 'specular' in lowered_filename or 'gloss' in lowered_filename:
+          specular = filename
+        if 'roughness' in lowered_filename:
+          roughness = filename
+        if 'normal' in lowered_filename or 'nrm' in lowered_filename:
+          normal = filename
+        if 'bump' in lowered_filename:
+          bump = filename
+        if 'opacity' in lowered_filename or 'alpha' in lowered_filename:
+          opacity = filename
+        if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
+          displacement = filename
+      
+      UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, displacement)
+      return True
+
+
+    elif id == BTN_COMA:
       self.ok = True
       self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
-      print self.file_path
       self.SetString(FOLDER_ADRESS,self.file_path)
+      return True
 
-     
-    return True
- 
+
+    elif id == BTN_CREATE_MAT:
+      self.ok = True
+      print 'create mat'
+
+      diffuse = os.path.join(self.file_path,self.GetString(DIFFUSE_FIELD))
+      print diffuse
+      specular = os.path.join(self.file_path,self.GetString(SPECULAR_FIELD))
+      roughness = os.path.join(self.file_path,self.GetString(ROUGHNESS_FIELD))
+      normal = os.path.join(self.file_path,self.GetString(NORMAL_FIELD))
+      bump = os.path.join(self.file_path,self.GetString(BUMP_FIELD))
+      opacity = os.path.join(self.file_path,self.GetString(OPACITY_FIELD))
+      displacement = os.path.join(self.file_path,self.GetString(DSPLACEMENT_FIELD))
+      index = self.GetFloat(INDEX_FIELD)
+
+      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index) 
+      self.Close()
+
+      return True
+
 #This is where the action happens
 def main():
 
