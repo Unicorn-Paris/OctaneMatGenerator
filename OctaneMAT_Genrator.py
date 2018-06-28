@@ -31,6 +31,8 @@ GR_IN_FLUSH = 2008
 
 GR_TEXDEF = 2009
 
+GR_TEXDEF_BTN = 2010
+
 #Edit fields 3
 FOLDER_ADRESS = 10001
 INDEX = 10003
@@ -48,11 +50,12 @@ EMISSION_FIELD = 10023
 MEDIUM_FIELD = 10024
 
 # Buttons 4
-BTN_OK = 20001
-BTN_CANCEL = 20002
-BTN_COMA = 20003
-BTN_LOAD = 20004
-BTN_CREATE_MAT = 20005
+BTN_LOAD_AND_CREATE = 4001
+BTN_CANCEL = 4002
+BTN_COMA = 4003
+BTN_LOAD = 4004
+BTN_CREATE_MAT = 4005
+BTN_RELOAD = 4006
 
 # Drop down menu 5
 DDM_MATTYPE = 30040
@@ -75,13 +78,14 @@ opacity = None
 displacement = None
 index = None
 
-def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, name,index):
+def make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, name,index,mat_type):
     print('shader name: {}'.format(name))
     doc = c4d.documents.GetActiveDocument()
     mat = c4d.BaseMaterial(ID_OCTANE_DIFFUSE_MATERIAL)
 
     #DEFINE MATERIAL TYPE
-    mat[c4d.OCT_MATERIAL_TYPE] = 2511
+
+    mat[c4d.OCT_MATERIAL_TYPE] = mat_type
     mat[c4d.ID_BASELIST_NAME] = name 
     
     # TRANSFORM NODE
@@ -240,7 +244,7 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
       self.GroupBorder(c4d.BORDER_NONE)
       self.GroupBorderSpace(10, 5, 10, 10)
     
-        #CONTENT
+      #CONTENT
       self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
       self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT, initw = 80)
             #ComboBox CONTENT
@@ -291,7 +295,7 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
       self.editText = self.AddEditText(OPACITY_FIELD, c4d.BFH_SCALEFIT, initw = 300)
       self.SetString(OPACITY_FIELD,opacity)
 
-      ######
+      
       self.AddStaticText(1006,c4d.BFH_LEFT, name='Index :')
       self.AddEditSlider(INDEX_FIELD,c4d.BFH_SCALEFIT,80,0)
       self.SetFloat(INDEX_FIELD, 1.33, min = 1, max = 8, step=0.001, format=c4d.FORMAT_FLOAT )
@@ -308,12 +312,17 @@ def UpdateLayout (self, diffuse, specular, roughness, normal, bump, opacity, dis
 
       self.GroupEnd()
 
+    # BTN GROUP
+      self.GroupBegin(GR_TEXDEF_BTN,c4d.BFH_CENTER,2,1)
+      self.GroupBorderSpace(5, 5, 5, 10)
       self.AddButton(BTN_CREATE_MAT,c4d.BFH_CENTER, name='Create Material')
+      self.AddButton(BTN_RELOAD,c4d.BFH_CENTER, name='Reload')
+      self.GroupEnd()
 
       self.LayoutChanged(id=GR_FLUSH)            
       return True
  
-# Dialog for renaming objects
+# Dialog
 class OptionsDialog(gui.GeDialog):
       
   def CreateLayout(self):
@@ -370,11 +379,11 @@ class OptionsDialog(gui.GeDialog):
     self.GroupBegin(GR_LOAD_BTN, c4d.BFH_CENTER, 3, 1)
     self.GroupBorderSpace(0, 5, 0, 5)
     self.AddButton(BTN_LOAD, c4d.BFH_LEFT, name='Load')
-    self.AddButton(BTN_OK, c4d.BFH_CENTER, name='Load & Creat Mat')
+    self.AddButton(BTN_LOAD_AND_CREATE, c4d.BFH_CENTER, name='Load & Creat Mat')
     self.AddButton(BTN_CANCEL, c4d.BFH_RIGHT, name='Cancel')
     self.GroupEnd()
     
-#MEGA GROUP END$------------------------------------------------------------------------------
+    #MEGA GROUP END$------------------------------------------------------------------------------
     self.GroupEnd()
 
     self.images = None
@@ -393,6 +402,7 @@ class OptionsDialog(gui.GeDialog):
           self.Enable(id, True)
         for id in [10011,10022]:
           self.Enable(id, True)
+
       if self.GetLong(30040) == 1:
         print 'Diffuse'
         for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
@@ -405,6 +415,11 @@ class OptionsDialog(gui.GeDialog):
         self.SetLong(30040, 0)
         #self.UpdateLayout(0)
         print 'Specular'
+        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+          self.Enable(id, True)
+        for id in [10011,10022]:
+          self.Enable(id, True)
+
       return True
             
     
@@ -414,7 +429,7 @@ class OptionsDialog(gui.GeDialog):
       return True
 
 
-    elif id == BTN_OK:
+    elif id == BTN_LOAD_AND_CREATE:
       index = self.GetFloat(INDEX_FIELD)
       
       if (self.file_path is None):
@@ -444,7 +459,7 @@ class OptionsDialog(gui.GeDialog):
         if 'displacement' in lowered_filename or 'disp' in lowered_filename or 'depth' in lowered_filename:
           displacement = absolute_filename
 
-      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index)    
+      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index,2511)    
       c4d.EventAdd()    
       self.Close()
       return True
@@ -464,7 +479,6 @@ class OptionsDialog(gui.GeDialog):
         lowered_filename = filename.lower()
         if 'diffuse' in lowered_filename or 'color' in lowered_filename or 'col' in lowered_filename or 'albedo' in lowered_filename:
           diffuse = filename
-          print os.path.join(self.file_path, diffuse)
         if 'specular' in lowered_filename or 'gloss' in lowered_filename:
           specular = filename
         if 'roughness' in lowered_filename:
@@ -493,6 +507,11 @@ class OptionsDialog(gui.GeDialog):
       self.ok = True
       print 'create mat'
 
+      if self.GetLong(30040) == 0:
+        mat_type = 2511
+      if self.GetLong(30040) == 1:
+        mat_type = 2510
+
       diffuse = os.path.join(self.file_path,self.GetString(DIFFUSE_FIELD))
       print diffuse
       specular = os.path.join(self.file_path,self.GetString(SPECULAR_FIELD))
@@ -503,9 +522,12 @@ class OptionsDialog(gui.GeDialog):
       displacement = os.path.join(self.file_path,self.GetString(DSPLACEMENT_FIELD))
       index = self.GetFloat(INDEX_FIELD)
 
-      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index) 
+      make_shader(diffuse, specular, roughness, normal, bump, opacity, displacement, os.path.basename(self.file_path) ,index,mat_type) 
       self.Close()
 
+      return True
+
+    else:
       return True
 
 #This is where the action happens
