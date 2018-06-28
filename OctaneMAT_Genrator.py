@@ -242,6 +242,8 @@ def make_shader(shader, name,index,mat_type):
     doc.InsertMaterial(mat)
     
 def UpdateLayout (self, shader):
+      self.LayoutFlushGroup(id=GR_LOAD_BTN)
+      self.GroupBorderSpace(0,0,0,0)
 
       #Texture Liste
       self.LayoutFlushGroup(id=GR_FLUSH)
@@ -413,6 +415,7 @@ class OptionsDialog(gui.GeDialog):
  
   # React to user's input:
   def Command(self, id, msg):
+
     if id == DDM_MATTYPE:
       self.GetLong(DDM_MATTYPE)
       if self.GetLong(30040) == 0:
@@ -485,7 +488,7 @@ class OptionsDialog(gui.GeDialog):
 
     elif id == BTN_LOAD or id == BTN_RELOAD:
       self.file_path = self.GetString(FOLDER_ADRESS)
-        
+
       if not os.path.exists(self.file_path):
         gui.MessageDialog('The system cannot find the path specified')
         return True
@@ -513,7 +516,11 @@ class OptionsDialog(gui.GeDialog):
   
       
       UpdateLayout (self, shader)
+
+
       return True
+
+
 
 
     elif id == BTN_COMA:
