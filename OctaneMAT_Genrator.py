@@ -70,14 +70,7 @@ ID_OCTANE_DISPLACEMENT = 1031901
 ID_OCTANE_TRANSFORM = 1030961
 ID_OCTANE_PROJECTION = 1031460
 
-diffuse = None
-specular = None
-roughness = None
-normal = None
-bump = None
-opacity = None
-displacement = None
-index = None
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "OMG_Config.json")
 
 
 class Shader():
@@ -242,7 +235,7 @@ def make_shader(shader, name,index,mat_type):
     mat[c4d.OCT_MATERIAL_INDEX] = index    
     doc.InsertMaterial(mat)
     
-def UpdateLayout (self, shader):
+def UpdateLayout (self, shader,name):
       self.LayoutFlushGroup(id=GR_LOAD_BTN)
       self.GroupBorderSpace(0,0,0,0)
 
@@ -255,7 +248,7 @@ def UpdateLayout (self, shader):
 
       # DROP DOWN MATERIAL TYPE
         #STYLE    
-      self.GroupBegin(GR_DDM, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 1,)
+      self.GroupBegin(GR_DDM, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 5, 1,)
       self.GroupBorder(c4d.BORDER_NONE)
       self.GroupBorderSpace(10, 5, 10, 10)
     
@@ -266,6 +259,11 @@ def UpdateLayout (self, shader):
       self.AddChild(DDM_MATTYPE, 0, 'Glossy')
       self.AddChild(DDM_MATTYPE, 1, 'Diffuse')
       self.AddChild(DDM_MATTYPE, 2, 'Specular')
+
+      self.AddStaticText(LBL_INFO5,c4d.BFH_LEFT,name='')
+      self.AddStaticText(LBL_INFO6,c4d.BFH_LEFT,name='Material name:')
+      self.AddEditText(LBL_INFO7,c4d.BFH_LEFT)
+      self.SetString(LBL_INFO7,name)
     
       self.GroupEnd()
 
@@ -530,7 +528,7 @@ class OptionsDialog(gui.GeDialog):
           shader.displacement = filename
   
       
-      UpdateLayout (self, shader)
+      UpdateLayout (self, shader,os.path.basename(self.file_path))
 
 
       return True
@@ -538,7 +536,7 @@ class OptionsDialog(gui.GeDialog):
 
     elif id == BTN_COMA:
       self.ok = True
-      self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) # and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
+      self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY, def_path=self.config['DEFAULT_FILE_PATH']) # and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
       if not self.file_path == None:
         self.SetString(FOLDER_ADRESS,self.file_path)
       else:
@@ -573,15 +571,13 @@ class OptionsDialog(gui.GeDialog):
         shader.displacement = os.path.join(self.file_path,self.GetString(DSPLACEMENT_FIELD))
       index = self.GetFloat(INDEX_FIELD)
 
-      make_shader(shader, os.path.basename(self.file_path) ,index,mat_type) 
+      make_shader(shader, self.GetString(LBL_INFO7) ,index,mat_type) 
       self.Close()
 
       return True
 
     else:
       return True
-
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "OMG_Config.json")
 
 def save_config(config):
   """take a dictionnary and save it to the disk"""
@@ -614,8 +610,6 @@ def main():
 
   dlg = OptionsDialog()
 
-  
- 
   # Open the options dialogue to let users choose their options.  
   dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=10)
   if not dlg.ok:
