@@ -344,6 +344,30 @@ def UpdateLayout (self, shader,name):
  
 # Dialog
 class OptionsDialog(gui.GeDialog):
+
+  config = None
+
+  def save_config(self,config):
+    """take a dictionnary and save it to the disk"""
+    with open(CONFIG_PATH, 'w') as fd:
+      json.dump(config, fd)
+    
+  def load_config(self):
+    self.config = {}
+    print(CONFIG_PATH)
+      
+    if os.path.exists(CONFIG_PATH):
+      with open(CONFIG_PATH, 'r') as fd:
+        self.config = json.load(fd)
+    return self.config
+
+  def get_config(self,key):
+    self.load_config().get(key)
+
+  def set_config(self,key, value):
+    self.config = self.load_config()
+    self.config[key] = value
+    self.save_config(self.config)
       
   def CreateLayout(self):
     id == 0
@@ -391,7 +415,7 @@ class OptionsDialog(gui.GeDialog):
     #MEGA GROUP END$------------------------------------------------------------------------------
 
     #OPTION TAB
-    self.config = load_config()
+    self.config = self.load_config()
     print self.config
 
     self.GroupBegin(GR_TAB_2, c4d.BFH_SCALEFIT,4,1,title="Options")
@@ -419,21 +443,21 @@ class OptionsDialog(gui.GeDialog):
 
     if id == DDM_MATTYPE:
       self.GetLong(DDM_MATTYPE)
-      if self.GetLong(30040) == 0:
+      if self.GetLong(50040) == 0:
         for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
         for id in [30011,30022]:
           self.Enable(id, True)
 
-      if self.GetLong(30040) == 1:
+      if self.GetLong(50040) == 1:
         for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
         for id in [30011, 30022]:
           self.Enable(id, False)
       
-      if self.GetLong(30040) == 2:
+      if self.GetLong(50040) == 2:
         gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
-        self.SetLong(30040, 0)
+        self.SetLong(50040, 0)
         #self.UpdateLayout(0)
         for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
@@ -449,7 +473,8 @@ class OptionsDialog(gui.GeDialog):
       return True
 
     elif id == BTN_SAVE:
-      set_config('DEFAULT_FILE_PATH', self.GetString(DFLT_MAT_FOLDER_FIELD))
+      self.set_config('DEFAULT_FILE_PATH', self.GetString(DFLT_MAT_FOLDER_FIELD))
+      self.load_config()
       return True
 
     elif id == BTN_COMA2:
@@ -548,9 +573,9 @@ class OptionsDialog(gui.GeDialog):
       self.ok = True
 
 
-      if self.GetLong(30040) == 0:
+      if self.GetLong(50040) == 0:
         mat_type = 2511
-      if self.GetLong(30040) == 1:
+      if self.GetLong(50040) == 1:
         mat_type = 2510
 
       shader = Shader()
@@ -579,30 +604,6 @@ class OptionsDialog(gui.GeDialog):
     else:
       return True
 
-def save_config(config):
-  """take a dictionnary and save it to the disk"""
-  with open(CONFIG_PATH, 'w') as fd:
-    json.dump(config, fd)
-  
-def load_config():
-  config = {}
-  print(CONFIG_PATH)
-    
-  if os.path.exists(CONFIG_PATH):
-    with open(CONFIG_PATH, 'r') as fd:
-      config = json.load(fd)
-  return config
-
-def get_config(key):
-  load_config().get(key)
-
-def set_config(key, value):
-  config = load_config()
-  config[key] = value
-  save_config(config)
-
-  if config and key in config:
-    config[key] = value
 
 
 #This is where the action happens
