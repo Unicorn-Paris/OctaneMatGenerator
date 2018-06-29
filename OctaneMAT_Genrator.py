@@ -1,15 +1,15 @@
 # Create Octane Material from file folder by texture name
  
-import c4d, os
+import c4d, os, json
 from c4d import gui
  
 # Unique id numbers for each of the GUI elements
 
 # Labels 1
-LBL_INFO1 = 1000
-LBL_INFO2 = 1001
-LBL_INFO3 = 1002
-LBL_INFO4 = 1003
+LBL_FOLDER = 1000
+LBL_MAT_TYPE = 1001
+LBL_TITLE = 1002
+LBL_DFLT_MAT_FOLDER = 1003
 LBL_INFO5 = 1004
 LBL_INFO6 = 1005
 LBL_INFO7 = 1006
@@ -18,36 +18,35 @@ LBL_INFO8 = 1007
 # Groups 2
 GR_MAIN = 2001
 GR_FOLDER_ADRESS = 2002
-
 GR_FLUSH = 2003
 GR_TEXDEF_L = 2004
 GR_TEXDEF_R = 2005
-
 GR_LOAD_BTN = 2006
-
 GR_DDM = 2007
-
 GR_IN_FLUSH = 2008
-
 GR_TEXDEF = 2009
-
 GR_TEXDEF_BTN = 2010
+GR_TAB_1 = 2011
+GR_TAB_2 = 2012
 
 #Edit fields 3
-FOLDER_ADRESS = 10001
-INDEX = 10003
+FOLDER_ADRESS = 30001
+INDEX = 30003
+MAIN_TEX_FOLDER = 30004
 
-DIFFUSE_FIELD = 10010
-SPECULAR_FIELD = 10011
-ROUGHNESS_FIELD = 10012
-BUMP_FIELD = 10013
-NORMAL_FIELD = 10014
+DIFFUSE_FIELD = 30010
+SPECULAR_FIELD = 30011
+ROUGHNESS_FIELD = 30012
+BUMP_FIELD = 30013
+NORMAL_FIELD = 30014
 
-DSPLACEMENT_FIELD = 10020
-OPACITY_FIELD = 10021
-INDEX_FIELD = 10022
-EMISSION_FIELD = 10023
-MEDIUM_FIELD = 10024
+DSPLACEMENT_FIELD = 30020
+OPACITY_FIELD = 30021
+INDEX_FIELD = 30022
+EMISSION_FIELD = 30023
+MEDIUM_FIELD = 30024
+
+DFLT_MAT_FOLDER_FIELD = 30005
 
 # Buttons 4
 BTN_LOAD_AND_CREATE = 4001
@@ -56,9 +55,11 @@ BTN_COMA = 4003
 BTN_LOAD = 4004
 BTN_CREATE_MAT = 4005
 BTN_RELOAD = 4006
+BTN_COMA2 = 4007
+BTN_SAVE = 4008
 
 # Drop down menu 5
-DDM_MATTYPE = 30040
+DDM_MATTYPE = 50040
 
 
 # Octane Plugin ID
@@ -259,7 +260,7 @@ def UpdateLayout (self, shader):
       self.GroupBorderSpace(10, 5, 10, 10)
     
       #CONTENT
-      self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
+      self.AddStaticText(LBL_MAT_TYPE, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
       self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT, initw = 80)
             #ComboBox CONTENT
       self.AddChild(DDM_MATTYPE, 0, 'Glossy')
@@ -349,42 +350,25 @@ class OptionsDialog(gui.GeDialog):
   def CreateLayout(self):
     id == 0
     self.SetTitle('THE OCTANE MAT MAKER')
+
+    self.TabGroupBegin(GR_TAB_1,c4d.BFH_SCALEFIT, tabtype = c4d.TAB_TABS)
     
     # MEGA GROUP BEGIN------------------------------------------------------------------------------------------
-    self.GroupBegin(GR_MAIN, c4d.BFH_SCALEFIT, 1,2)
+    self.GroupBegin(GR_MAIN, c4d.BFH_SCALEFIT, 1,2,title="O.M.G !!")
     self.GroupBorderNoTitle(c4d.BORDER_NONE)
     self.GroupBorderSpace(10, 10, 10, 10)
     
     # TITLE
     
     self.AddSeparatorH(130 ,c4d.BFH_CENTER)
-    self.AddStaticText(LBL_INFO3, c4d.BFH_CENTER, name='Material Type', borderstyle = c4d.BORDER_WITH_TITLE_BOLD)
+    self.AddStaticText(LBL_TITLE, c4d.BFH_CENTER, name='Material Type', borderstyle = c4d.BORDER_WITH_TITLE_BOLD)
     self.AddSeparatorH(130 ,c4d.BFH_CENTER,)
     
-    # DROP DOWN MATERIAL TYPE
-        #STYLE    
-    #self.GroupBegin(GROUP_OPTIONS, c4d.BFV_SCALEFIT|c4d.BFH_SCALEFIT, 2, 2,title="Material Setup" ,)
-    #self.GroupBorder(c4d.BORDER_GROUP_IN)
-    #self.GroupBorderSpace(10, 10, 10, 10)
-    #
-        #CONTENT
-    #self.AddStaticText(LBL_INFO2, c4d.BFH_LEFT|c4d.BFV_TOP, name='Material Type')
-    #self.AddComboBox(DDM_MATTYPE, c4d.BFH_LEFT|c4d.BFV_TOP|c4d.BFH_SCALEFIT, initw = 80)
-            #ComboBox CONTENT
-    #self.AddChild(DDM_MATTYPE, 0, 'Diffuse')
-    #self.AddChild(DDM_MATTYPE, 1, 'Glossy')
-    #self.AddChild(DDM_MATTYPE, 2, 'Specular')
-    
    
-    #
-    #self.GroupEnd()
-    #
-    
-    
     # FOLDER SELECTION
     self.GroupBegin(GR_FOLDER_ADRESS, c4d.BFH_SCALEFIT|c4d.BFV_BOTTOM , 3, 1)
     self.GroupBorderSpace(0, 10, 0, 5)
-    self.AddStaticText(LBL_INFO1, c4d.BFH_LEFT, name='Folder') 
+    self.AddStaticText(LBL_FOLDER, c4d.BFH_LEFT, name='Folder') 
     self.editText = self.AddEditText(FOLDER_ADRESS, c4d.BFH_SCALEFIT)
     self.AddButton(BTN_COMA, c4d.BFH_RIGHT, name='...')
     self.GroupEnd()
@@ -400,17 +384,36 @@ class OptionsDialog(gui.GeDialog):
     self.GroupBegin(GR_LOAD_BTN, c4d.BFH_CENTER, 3, 1)
     self.GroupBorderSpace(0, 5, 0, 5)
     self.AddButton(BTN_LOAD, c4d.BFH_LEFT, name='Load')
-    self.AddButton(BTN_LOAD_AND_CREATE, c4d.BFH_CENTER, name='Load & Creat Mat')
+    self.AddButton(BTN_LOAD_AND_CREATE, c4d.BFH_CENTER, name="I'm lucky !")
     self.AddButton(BTN_CANCEL, c4d.BFH_RIGHT, name='Cancel')
     self.GroupEnd()
     
+    self.GroupEnd()
+
     #MEGA GROUP END$------------------------------------------------------------------------------
+
+    #OPTION TAB
+    self.config = load_config()
+    print self.config
+
+    self.GroupBegin(GR_TAB_2, c4d.BFH_SCALEFIT,4,1,title="Options")
+    self.GroupBorderSpace(10,10,10,10)
+    self.AddStaticText(LBL_DFLT_MAT_FOLDER, c4d.BFH_LEFT, name="Default Texture Folder :")
+
+    self.editText = self.AddEditText(DFLT_MAT_FOLDER_FIELD, c4d.BFH_SCALEFIT)
+    if 'DEFAULT_FILE_PATH' in self.config:
+      print self.config["DEFAULT_FILE_PATH"]
+      self.SetString(DFLT_MAT_FOLDER_FIELD,self.config["DEFAULT_FILE_PATH"])
+
+    self.AddButton(BTN_COMA2, c4d.BFH_RIGHT, name='...')
+    self.AddButton(BTN_SAVE,c4d.BFH_CENTER, name='Save')
     self.GroupEnd()
 
     self.images = None
     self.file_path = None
     
     self.ok = False
+
     return True
  
   # React to user's input:
@@ -419,24 +422,24 @@ class OptionsDialog(gui.GeDialog):
     if id == DDM_MATTYPE:
       self.GetLong(DDM_MATTYPE)
       if self.GetLong(30040) == 0:
-        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+        for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
-        for id in [10011,10022]:
+        for id in [30011,30022]:
           self.Enable(id, True)
 
       if self.GetLong(30040) == 1:
-        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+        for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
-        for id in [10011, 10022]:
+        for id in [30011, 30022]:
           self.Enable(id, False)
       
       if self.GetLong(30040) == 2:
         gui.MessageDialog('OctaneMatGenerator doesn`t support specular material yet :)')
         self.SetLong(30040, 0)
         #self.UpdateLayout(0)
-        for id in [10010, 10012,10013,10014,10020,10021,10023,10024]:
+        for id in [30010, 30012,30013,30014,30020,30021,30023,30024]:
           self.Enable(id, True)
-        for id in [10011,10022]:
+        for id in [30011,30022]:
           self.Enable(id, True)
 
       return True
@@ -447,6 +450,18 @@ class OptionsDialog(gui.GeDialog):
       self.Close()
       return True
 
+    elif id == BTN_SAVE:
+      set_config('DEFAULT_FILE_PATH', self.GetString(DFLT_MAT_FOLDER_FIELD))
+      return True
+
+    elif id == BTN_COMA2:
+      self.ok = True
+      self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY,def_path=self.config['DEFAULT_FILE_PATH'])
+      if not self.file_path == None:
+        self.SetString(DFLT_MAT_FOLDER_FIELD,self.file_path)
+      else:
+        self.SetString(DFLT_MAT_FOLDER_FIELD,self.config["DEFAULT_FILE_PATH"])
+      return True
 
     elif id == BTN_LOAD_AND_CREATE:
       index = self.GetFloat(INDEX_FIELD)
@@ -521,12 +536,13 @@ class OptionsDialog(gui.GeDialog):
       return True
 
 
-
-
     elif id == BTN_COMA:
       self.ok = True
-      self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
-      self.SetString(FOLDER_ADRESS,self.file_path)
+      self.file_path = c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) # and c4d.storage.LoadDialog(flags=c4d.FILESELECT_DIRECTORY) or ''
+      if not self.file_path == None:
+        self.SetString(FOLDER_ADRESS,self.file_path)
+      else:
+        self.SetString(FOLDER_ADRESS,'')
       return True
 
 
@@ -565,10 +581,39 @@ class OptionsDialog(gui.GeDialog):
     else:
       return True
 
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "OMG_Config.json")
+
+def save_config(config):
+  """take a dictionnary and save it to the disk"""
+  with open(CONFIG_PATH, 'w') as fd:
+    json.dump(config, fd)
+  
+def load_config():
+  config = {}
+  print(CONFIG_PATH)
+    
+  if os.path.exists(CONFIG_PATH):
+    with open(CONFIG_PATH, 'r') as fd:
+      config = json.load(fd)
+  return config
+
+def get_config(key):
+  load_config().get(key)
+
+def set_config(key, value):
+  config = load_config()
+  config[key] = value
+  save_config(config)
+
+  if config and key in config:
+    config[key] = value
+
+
 #This is where the action happens
 def main():
 
   dlg = OptionsDialog()
+
   
  
   # Open the options dialogue to let users choose their options.  
