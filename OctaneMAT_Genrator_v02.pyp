@@ -1,7 +1,14 @@
 # Create Octane Material from file folder by texture name
  
 import c4d, os, json
-from c4d import gui
+from c4d import bitmaps, gui, plugins, utils
+import collections, os
+
+### Dialoog test ###
+# Add / remove GUI fields.
+# Enable / disable GUI fields
+#
+PLUGIN_ID = 1041301 #TestID only!!!!!!!!!!!!
  
 # Unique id numbers for each of the GUI elements
 
@@ -72,7 +79,6 @@ ID_OCTANE_PROJECTION = 1031460
 
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "OMG_Config.json")
 
-
 class Shader():
   diffuse = None
   specular = None
@@ -82,8 +88,6 @@ class Shader():
   opacity = None
   displacement = None
   index = None
-    
-
 
 def make_shader(shader, name,index,mat_type):
     print('shader name: {}'.format(name))
@@ -234,7 +238,7 @@ def make_shader(shader, name,index,mat_type):
     # INDEX SETUP    
     mat[c4d.OCT_MATERIAL_INDEX] = index    
     doc.InsertMaterial(mat)
-    
+
 def UpdateLayout (self, shader,name):
       self.LayoutFlushGroup(id=GR_LOAD_BTN)
       self.GroupBorderSpace(0,0,0,0)
@@ -342,7 +346,7 @@ def UpdateLayout (self, shader,name):
       self.LayoutChanged(id=GR_FLUSH)            
       return True
  
-# Dialog
+# Dialog Setup
 class OptionsDialog(gui.GeDialog):
 
   config = None
@@ -469,7 +473,7 @@ class OptionsDialog(gui.GeDialog):
     
     if id == BTN_CANCEL:
       print '{}'.format(self.file_path)
-      self.Close()
+      #self.Close()
       return True
 
     elif id == BTN_SAVE:
@@ -520,7 +524,7 @@ class OptionsDialog(gui.GeDialog):
 
       make_shader(shader, os.path.basename(self.file_path) ,1.3,2511)    
       c4d.EventAdd()    
-      self.Close()
+      #self.Close()
       return True
     
 
@@ -601,26 +605,44 @@ class OptionsDialog(gui.GeDialog):
       index = self.GetFloat(INDEX_FIELD)
 
       make_shader(shader, self.GetString(LBL_INFO7) ,index,mat_type) 
-      self.Close()
+      #self.Close()
 
       return True
 
     else:
       return True
 
+class CommandDataDialog(plugins.CommandData):
 
+    dialog = None
 
-#This is where the action happens
+    def Execute(self, doc):
+        if self.dialog is None: self.dialog = OptionsDialog()
+        return self.dialog.Open(dlgtype=c4d.DLG_TYPE_ASYNC, pluginid=PLUGIN_ID, defaultw=400, defaulth=100)
+    def RestoreLayout(self, sec_ref):
+        if self.dialog is None: self.dialog = OptionsDialog()
+        return self.dialog.Restore(pluginid=PLUGIN_ID, secret=sec_ref)
+
+#This is where the magic happens
 def main():
 
-  dlg = OptionsDialog()
-
-  # Open the options dialogue to let users choose their options.  
-  dlg.Open(c4d.DLG_TYPE_MODAL, defaultw=400, defaulth=10)
-  if not dlg.ok:
-    return
+  # Open the options dialogue to let users choose their options.
+  # dlg = OptionsDialog()
+  # dlg.Open(c4d.DLG_TYPE_ASYNC, defaultw=400, defaulth=100)
+  # if not dlg.ok:
+  #   return
  
-  c4d.EventAdd()  # Update C4D to see changes.
+  # c4d.EventAdd()  # Update C4D to see changes.
+    bmp = bitmaps.BaseBitmap()
+    dir, f = os.path.split(__file__)
+    fn = os.path.join(dir, "OctaneMAT_Genrator.tif")
+    bmp.InitWith(fn)
+    plugins.RegisterCommandPlugin(id=PLUGIN_ID, 
+                                  str="OMG",
+                                  info=0,
+                                  help="Octane mat Generator", 
+                                  dat=CommandDataDialog(),
+                                  icon=bmp)
  
 if __name__=='__main__':
   main()
